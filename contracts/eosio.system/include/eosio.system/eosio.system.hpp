@@ -153,16 +153,16 @@ namespace eosiosystem {
       int64_t              perblock_bucket = 0;
       uint32_t             total_unpaid_blocks = 0; /// all blocks which have been produced but not paid
       int64_t              total_activated_stake = 0;
-	  uint16_t             new_ram_per_block = 0;
+      uint16_t             new_ram_per_block = 0;
       uint16_t             last_producer_schedule_size = 0;
       double               total_producer_vote_weight = 0; /// the sum of all producer votes
       double               total_producer_votepay_share = 0;
-	  double               total_vpay_share_change_rate = 0;
+      double               total_vpay_share_change_rate = 0;
       block_timestamp      last_name_close;
-	  block_timestamp      last_ram_increase;
+      block_timestamp      last_ram_increase;
       block_timestamp      last_block_num; /* deprecated */
-	  time_point           last_vpay_state_update;
-	  time_point           thresh_activated_stake_time;
+      time_point           last_vpay_state_update;
+      time_point           thresh_activated_stake_time;
 
       // explicit serialization macro is not necessary, used here only to improve compilation time
       EOSLIB_SERIALIZE_DERIVED( eosio_global_state, eosio::blockchain_parameters,
@@ -1172,6 +1172,12 @@ namespace eosiosystem {
          [[eosio::action]]
          void bidrefund( const name& bidder, const name& newname );
 
+
+         //add for achainplus
+         //set BP number dynamically, the number just be increased
+         [[eosio::action]]
+         void setbpnum(uint32_t bp_number);
+
          using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
          using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
          using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
@@ -1215,6 +1221,7 @@ namespace eosiosystem {
          using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
          using setalimits_action = eosio::action_wrapper<"setalimits"_n, &system_contract::setalimits>;
          using setparams_action = eosio::action_wrapper<"setparams"_n, &system_contract::setparams>;
+         using setbpnum_action = eosio::action_wrapper<"setbpnum"_n, &system_contract::setbpnum>;
 
       private:
          // Implementation details:

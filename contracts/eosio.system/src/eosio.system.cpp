@@ -348,5 +348,15 @@ namespace eosiosystem {
       token::open_action open_act{ token_account, { {get_self(), active_permission} } };
       open_act.send( rex_account, core, get_self() );
    }
+   void system_contract::setbpnum(uint32_t bp_number){
+
+      require_auth(get_self());
+
+      uint32_t schedule_size = get_proposed_schedule_size();
+      
+      check( bp_number > schedule_size, "new size must be larger than current size" );
+
+      set_proposed_schedule_size(bp_number);
+   }
 
 } /// eosio.system
