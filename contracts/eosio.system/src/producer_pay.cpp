@@ -19,7 +19,7 @@ namespace eosiosystem {
       // _gstate2.last_block_num is not used anywhere in the system contract code anymore.
       // Although this field is deprecated, we will continue updating it for now until the last_block_num field
       // is eventually completely removed, at which point this line can be removed.
-      _gstate2.last_block_num = timestamp;
+      _gstate.last_block_num = timestamp;
 
       /** until activated stake crosses this threshold no new rewards are paid */
       if( _gstate.total_activated_stake < min_activated_stake )
@@ -138,17 +138,11 @@ namespace eosiosystem {
                                  );
 
       int64_t producer_per_vote_pay = 0;
-      if( _gstate2.revision > 0 ) {
-         double total_votepay_share = update_total_votepay_share( ct );
-         if( total_votepay_share > 0 && !crossed_threshold ) {
-            producer_per_vote_pay = int64_t((new_votepay_share * _gstate.pervote_bucket) / total_votepay_share);
-            if( producer_per_vote_pay > _gstate.pervote_bucket )
-               producer_per_vote_pay = _gstate.pervote_bucket;
-         }
-      } else {
-         if( _gstate.total_producer_vote_weight > 0 ) {
-            producer_per_vote_pay = int64_t((_gstate.pervote_bucket * prod.total_votes) / _gstate.total_producer_vote_weight);
-         }
+      double total_votepay_share = update_total_votepay_share( ct );
+      if( total_votepay_share > 0 && !crossed_threshold ) {
+         producer_per_vote_pay = int64_t((new_votepay_share * _gstate.pervote_bucket) / total_votepay_share);
+         if( producer_per_vote_pay > _gstate.pervote_bucket )
+            producer_per_vote_pay = _gstate.pervote_bucket;
       }
 
       if( producer_per_vote_pay < min_pervote_daily_pay ) {

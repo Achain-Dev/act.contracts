@@ -161,14 +161,6 @@ namespace eosiosystem {
       }
    }
 
-   void validate_b1_vesting( int64_t stake ) {
-      const int64_t base_time = 1527811200; /// 2018-06-01
-      const int64_t max_claimable = 100'000'000'0000ll;
-      const int64_t claimable = int64_t(max_claimable * double(current_time_point().sec_since_epoch() - base_time) / (10*seconds_per_year) );
-
-      check( max_claimable - claimable <= stake, "b1 can only claim their tokens over 10 years" );
-   }
-
    void system_contract::changebw( name from, const name& receiver,
                                    const asset& stake_net_delta, const asset& stake_cpu_delta, bool transfer )
    {
@@ -344,10 +336,10 @@ namespace eosiosystem {
       }
 
       vote_stake_updater( from );
-      update_voting_power( from, stake_net_delta + stake_cpu_delta );
+      update_stake( from, stake_net_delta + stake_cpu_delta );
    }
 
-   void system_contract::update_voting_power( const name& voter, const asset& total_update )
+   void system_contract::update_stake( const name& voter, const asset& total_update )
    {
       auto voter_itr = _voters.find( voter.value );
       if( voter_itr == _voters.end() ) {
@@ -356,19 +348,13 @@ namespace eosiosystem {
             v.staked = total_update.amount;
          });
       } else {
+	  	 if( total_update.amount < 0){
+            auto stake_available = voter_itr->staked - voter_itr->current_stake;
+            check( stake_available + total_update.amount >= 0, "attempt to undelegate more stake, please check your vote info" );
+         }
          _voters.modify( voter_itr, same_payer, [&]( auto& v ) {
             v.staked += total_update.amount;
          });
-      }
-
-      check( 0 <= voter_itr->staked, "stake for voting cannot be negative" );
-
-      if( voter == "b1"_n ) {
-         validate_b1_vesting( voter_itr->staked );
-      }
-
-      if( voter_itr->producers.size() || voter_itr->proxy ) {
-         update_votes( voter, voter_itr->proxy, voter_itr->producers, false );
       }
    }
 

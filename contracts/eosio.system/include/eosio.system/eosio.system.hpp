@@ -153,44 +153,26 @@ namespace eosiosystem {
       int64_t              perblock_bucket = 0;
       uint32_t             total_unpaid_blocks = 0; /// all blocks which have been produced but not paid
       int64_t              total_activated_stake = 0;
-      time_point           thresh_activated_stake_time;
+	  uint16_t             new_ram_per_block = 0;
       uint16_t             last_producer_schedule_size = 0;
       double               total_producer_vote_weight = 0; /// the sum of all producer votes
+      double               total_producer_votepay_share = 0;
+	  double               total_vpay_share_change_rate = 0;
       block_timestamp      last_name_close;
+	  block_timestamp      last_ram_increase;
+      block_timestamp      last_block_num; /* deprecated */
+	  time_point           last_vpay_state_update;
+	  time_point           thresh_activated_stake_time;
 
       // explicit serialization macro is not necessary, used here only to improve compilation time
       EOSLIB_SERIALIZE_DERIVED( eosio_global_state, eosio::blockchain_parameters,
                                 (max_ram_size)(total_ram_bytes_reserved)(total_ram_stake)
                                 (last_producer_schedule_update)(last_pervote_bucket_fill)
-                                (pervote_bucket)(perblock_bucket)(total_unpaid_blocks)(total_activated_stake)(thresh_activated_stake_time)
-                                (last_producer_schedule_size)(total_producer_vote_weight)(last_name_close) )
-   };
-
-   /**
-    * Defines new global state parameters added after version 1.0
-    */
-   struct [[eosio::table("global2"), eosio::contract("eosio.system")]] eosio_global_state2 {
-      eosio_global_state2(){}
-
-      uint16_t          new_ram_per_block = 0;
-      block_timestamp   last_ram_increase;
-      block_timestamp   last_block_num; /* deprecated */
-      double            total_producer_votepay_share = 0;
-      uint8_t           revision = 0; ///< used to track version updates in the future.
-
-      EOSLIB_SERIALIZE( eosio_global_state2, (new_ram_per_block)(last_ram_increase)(last_block_num)
-                        (total_producer_votepay_share)(revision) )
-   };
-
-   /**
-    * Defines new global state parameters added after version 1.3.0
-    */
-   struct [[eosio::table("global3"), eosio::contract("eosio.system")]] eosio_global_state3 {
-      eosio_global_state3() { }
-      time_point        last_vpay_state_update;
-      double            total_vpay_share_change_rate = 0;
-
-      EOSLIB_SERIALIZE( eosio_global_state3, (last_vpay_state_update)(total_vpay_share_change_rate) )
+                                (pervote_bucket)(perblock_bucket)(total_unpaid_blocks)(total_activated_stake)
+                                (new_ram_per_block)(last_producer_schedule_size)(total_producer_vote_weight)
+                                (total_producer_votepay_share)(total_vpay_share_change_rate)
+                                (last_name_close)(last_ram_increase)(last_block_num)(last_vpay_state_update)
+                                (thresh_activated_stake_time) )
    };
 
    /**
@@ -241,25 +223,9 @@ namespace eosiosystem {
     */
    struct [[eosio::table, eosio::contract("eosio.system")]] voter_info {
       name                owner;     /// the voter
-      name                proxy;     /// the proxy set by the voter, if any
-      std::vector<name>   producers; /// the producers approved by this voter if no proxy set
-      int64_t             staked = 0;
-
-      /**
-       *  Every time a vote is cast we must first "undo" the last vote weight, before casting the
-       *  new vote weight.  Vote weight is calculated as:
-       *
-       *  stated.amount * 2 ^ ( weeks_since_launch/weeks_per_year)
-       */
-      double              last_vote_weight = 0; /// the vote weight cast the last time the vote was updated
-
-      /**
-       * Total vote weight delegated to this voter.
-       */
-      double              proxied_vote_weight= 0; /// the total vote weight delegated to this voter as a proxy
-      bool                is_proxy = 0; /// whether the voter is a proxy for others
-
-
+      std::map<account_name, int64_t>   producers; /// the producers approved by this voter,voter投票使用的抵押数量
+      int64_t             staked = 0;       //记录抵押的数量(10 ^ 4)
+      int64_t             current_stake = 0; //当前投票已经使用的数量(10 ^ 4)
       uint32_t            flags1 = 0;
       uint32_t            reserved2 = 0;
       eosio::asset        reserved3;
@@ -273,7 +239,7 @@ namespace eosiosystem {
       };
 
       // explicit serialization macro is not necessary, used here only to improve compilation time
-      EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(staked)(last_vote_weight)(proxied_vote_weight)(is_proxy)(flags1)(reserved2)(reserved3) )
+      EOSLIB_SERIALIZE( voter_info, (owner)(producers)(staked)(current_stake)(flags1)(reserved2)(reserved3) )
    };
 
    /**
@@ -299,14 +265,6 @@ namespace eosiosystem {
     * Global state singleton added in version 1.0
     */
    typedef eosio::singleton< "global"_n, eosio_global_state >   global_state_singleton;
-   /**
-    * Global state singleton added in version 1.1.0
-    */
-   typedef eosio::singleton< "global2"_n, eosio_global_state2 > global_state2_singleton;
-   /**
-    * Global state singleton added in version 1.3
-    */
-   typedef eosio::singleton< "global3"_n, eosio_global_state3 > global_state3_singleton;
 
    struct [[eosio::table, eosio::contract("eosio.system")]] user_resources {
       name          owner;
@@ -533,11 +491,7 @@ namespace eosiosystem {
          producers_table         _producers;
          producers_table2        _producers2;
          global_state_singleton  _global;
-         global_state2_singleton _global2;
-         global_state3_singleton _global3;
          eosio_global_state      _gstate;
-         eosio_global_state2     _gstate2;
-         eosio_global_state3     _gstate3;
          rammarket               _rammarket;
          rex_pool_table          _rexpool;
          rex_fund_table          _rexfunds;
@@ -1187,18 +1141,6 @@ namespace eosiosystem {
          void rmvproducer( const name& producer );
 
          /**
-          * Update revision action.
-          *
-          * @details Updates the current revision.
-          * @param revision - it has to be incremented by 1 compared with current revision.
-          *
-          * @pre Current revision can not be higher than 254, and has to be smaller
-          * than or equal 1 (“set upper bound to greatest revision supported in the code”).
-          */
-         [[eosio::action]]
-         void updtrevision( uint8_t revision );
-
-         /**
           * Bid name action.
           *
           * @details Allows an account `bidder` to place a bid for a name `newname`.
@@ -1268,7 +1210,6 @@ namespace eosiosystem {
          using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
          using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
          using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
-         using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
          using bidname_action = eosio::action_wrapper<"bidname"_n, &system_contract::bidname>;
          using bidrefund_action = eosio::action_wrapper<"bidrefund"_n, &system_contract::bidrefund>;
          using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
@@ -1327,12 +1268,11 @@ namespace eosiosystem {
          // defined in delegate_bandwidth.cpp
          void changebw( name from, const name& receiver,
                         const asset& stake_net_quantity, const asset& stake_cpu_quantity, bool transfer );
-         void update_voting_power( const name& voter, const asset& total_update );
+         void update_stake( const name& voter, const asset& total_update );
 
          // defined in voting.hpp
          void update_elected_producers( const block_timestamp& timestamp );
-         void update_votes( const name& voter, const name& proxy, const std::vector<name>& producers, bool voting );
-         void propagate_weight_change( const voter_info& voter );
+         void update_votes( const name& voter, const name& producer, const asset& stake);
          double update_producer_votepay_share( const producers_table2::const_iterator& prod_itr,
                                                const time_point& ct,
                                                double shares_rate, bool reset_to_zero = false );

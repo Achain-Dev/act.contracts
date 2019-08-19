@@ -803,7 +803,7 @@ namespace eosiosystem {
       if ( to_fund.amount > 0 )
          transfer_to_fund( owner, to_fund );
       if ( force_vote_update || to_stake.amount != 0 )
-         update_voting_power( owner, to_stake );
+         update_stake( owner, to_stake );
 
       return rex_in_sell_order;
    }
