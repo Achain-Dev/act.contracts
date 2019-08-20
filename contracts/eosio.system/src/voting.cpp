@@ -80,9 +80,11 @@ namespace eosiosystem {
       auto idx = _producers.get_index<"prototalvote"_n>();
 
       std::vector< std::pair<eosio::producer_key,uint16_t> > top_producers;
-      top_producers.reserve(21);
+      //add for Achain2.0
+      auto producer_size = get_proposed_schedule_size();
+      top_producers.reserve(producer_size);
 
-      for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it ) {
+      for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < producer_size && 0 < it->total_votes && it->active(); ++it ) {
          top_producers.emplace_back( std::pair<eosio::producer_key,uint16_t>({{it->owner, it->producer_key}, it->location}) );
       }
 
