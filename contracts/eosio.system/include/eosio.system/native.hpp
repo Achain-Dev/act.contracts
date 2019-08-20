@@ -174,12 +174,21 @@ namespace eosiosystem {
           * therefore, this method will execute an inline buyram from receiver for newacnt in
           * an amount equal to the current new account creation fee.
           */
+         #if 0
          [[eosio::action]]
          void newaccount( const name&       creator,
                           const name&       name,
                           ignore<authority> owner,
                           ignore<authority> active);
-
+         #endif
+         
+         [[eosio::action]]
+         void setconfig(/*ignore<name>  account,
+                        ignore<int64_t> value,
+                        ignore<int64_t> valid_block,
+                        ignore<name>  key,
+                        ignore<eosio::chain::asset> asset_info,
+                        ignore<string> desc */){}        
          /**
           * Update authorization action.
           *
@@ -295,7 +304,7 @@ namespace eosiosystem {
 
          /** @}*/
 
-         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
+         //using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
          using updateauth_action = eosio::action_wrapper<"updateauth"_n, &native::updateauth>;
          using deleteauth_action = eosio::action_wrapper<"deleteauth"_n, &native::deleteauth>;
          using linkauth_action = eosio::action_wrapper<"linkauth"_n, &native::linkauth>;
@@ -303,6 +312,7 @@ namespace eosiosystem {
          using canceldelay_action = eosio::action_wrapper<"canceldelay"_n, &native::canceldelay>;
          using setcode_action = eosio::action_wrapper<"setcode"_n, &native::setcode>;
          using setabi_action = eosio::action_wrapper<"setabi"_n, &native::setabi>;
+         using setconfig_action = eosio::action_wrapper<"setconfig"_n, &native::setconfig>;
    };
    /** @}*/ // @addtogroup eosiosystem
 }

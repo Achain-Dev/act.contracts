@@ -146,6 +146,9 @@ namespace eosiosystem {
       uint64_t             max_ram_size = 64ll*1024 * 1024 * 1024;
       uint64_t             total_ram_bytes_reserved = 0;
       int64_t              total_ram_stake = 0;
+      //add for free ram
+      uint64_t             total_ram_bytes_forfree = 0;   
+      uint32_t             total_free_ram_accounts = 0;
 
       block_timestamp      last_producer_schedule_update;
       time_point           last_pervote_bucket_fill;
@@ -167,6 +170,7 @@ namespace eosiosystem {
       // explicit serialization macro is not necessary, used here only to improve compilation time
       EOSLIB_SERIALIZE_DERIVED( eosio_global_state, eosio::blockchain_parameters,
                                 (max_ram_size)(total_ram_bytes_reserved)(total_ram_stake)
+                                (total_ram_bytes_forfree)(total_free_ram_accounts)
                                 (last_producer_schedule_update)(last_pervote_bucket_fill)
                                 (pervote_bucket)(perblock_bucket)(total_unpaid_blocks)(total_activated_stake)
                                 (new_ram_per_block)(last_producer_schedule_size)(total_producer_vote_weight)
@@ -271,12 +275,14 @@ namespace eosiosystem {
       asset         net_weight;
       asset         cpu_weight;
       int64_t       ram_bytes = 0;
+      //add for free ram
+      int64_t       ram_bytes_forfree = 0;
 
       bool is_empty()const { return net_weight.amount == 0 && cpu_weight.amount == 0 && ram_bytes == 0; }
       uint64_t primary_key()const { return owner.value; }
 
       // explicit serialization macro is not necessary, used here only to improve compilation time
-      EOSLIB_SERIALIZE( user_resources, (owner)(net_weight)(cpu_weight)(ram_bytes) )
+      EOSLIB_SERIALIZE( user_resources, (owner)(net_weight)(cpu_weight)(ram_bytes)(ram_bytes_forfree))
    };
 
    /**
@@ -567,7 +573,9 @@ namespace eosiosystem {
           */
          [[eosio::action]]
          void onblock( ignore<block_header> header );
-
+         
+         [[eosio::action]]
+         void newaccount( name creator,name newact);
          /**
           * Set account limits action.
           *
@@ -1179,6 +1187,7 @@ namespace eosiosystem {
          void setbpnum(uint32_t bp_number);
 
          using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
+         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &system_contract::newaccount>;
          using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
          using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
          using setacctcpu_action = eosio::action_wrapper<"setacctcpu"_n, &system_contract::setacctcpu>;

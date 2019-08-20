@@ -271,33 +271,45 @@ namespace eosiosystem {
     *  who can create accounts with the creator's name as a suffix.
     *
     */
-   void native::newaccount( const name&       creator,
+   void system_contract::newaccount( const name&       creator,
                             const name&       newact,
                             ignore<authority> owner,
                             ignore<authority> active ) {
+      
+      //add for nobid
+      if (is_chain_func_open(N(f.nobid))){
+         if( creator != get_self() ) {
+            uint64_t tmp = newact.value >> 4;
+            bool has_dot = false;
 
-      if( creator != get_self() ) {
-         uint64_t tmp = newact.value >> 4;
-         bool has_dot = false;
-
-         for( uint32_t i = 0; i < 12; ++i ) {
-           has_dot |= !(tmp & 0x1f);
-           tmp >>= 5;
-         }
-         if( has_dot ) { // or is less than 12 characters
-            auto suffix = newact.suffix();
-            if( suffix == newact ) {
-               name_bid_table bids(get_self(), get_self().value);
-               auto current = bids.find( newact.value );
-               check( current != bids.end(), "no active bid for name" );
-               check( current->high_bidder == creator, "only highest bidder can claim" );
-               check( current->high_bid < 0, "auction for name is not closed yet" );
-               bids.erase( current );
-            } else {
-               check( creator == suffix, "only suffix may create this account" );
+           for( uint32_t i = 0; i < 12; ++i ) {
+              has_dot |= !(tmp & 0x1f);
+              tmp >>= 5;
             }
+            if( has_dot ) { // or is less than 12 characters
+               auto suffix = newact.suffix();
+               if( suffix == newact ) {
+                  name_bid_table bids(get_self(), get_self().value);
+                  auto current = bids.find( newact.value );
+                  check( current != bids.end(), "no active bid for name" );
+                  check( current->high_bidder == creator, "only highest bidder can claim" );
+                  check( current->high_bid < 0, "auction for name is not closed yet" );
+                  bids.erase( current );
+               } else {
+                  check( creator == suffix, "only suffix may create this account" );
+               }   
+            }   
          }
       }
+      
+      //add for achain2.0
+      //free ram for every new account
+      int64_t free_ram = 0;
+      if (is_chain_func_open(N(r.freeram)))
+         free_ram = get_chain_config_value(N(r.freeram));
+
+      _gstate.total_ram_bytes_reserved += free_ram;
+      _gstate.total_free_ram_accounts += 1;
 
       user_resources_table  userres( get_self(), newact.value );
 
@@ -305,9 +317,11 @@ namespace eosiosystem {
         res.owner = newact;
         res.net_weight = asset( 0, system_contract::get_core_symbol() );
         res.cpu_weight = asset( 0, system_contract::get_core_symbol() );
+        res.ram_bytes = free_ram;
+        res.ram_bytes_forfree = free_ram;
       });
 
-      set_resource_limits( newact, 0, 0, 0 );
+      set_resource_limits( newact, free_ram, 0, 0 );
    }
 
    void native::setabi( const name& acnt, const std::vector<char>& abi ) {
