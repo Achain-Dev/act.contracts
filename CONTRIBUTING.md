@@ -1,4 +1,4 @@
-# Contributing to eosio.contracts
+# Contributing to act.contracts
 
 Interested in contributing? That's awesome! Here are some guidelines to get started quickly and easily:
 
@@ -16,7 +16,7 @@ Interested in contributing? That's awesome! Here are some guidelines to get star
 
 ## Reporting An Issue
 
-If you're about to raise an issue because you think you've found a problem with eosio.contracts, or you'd like to make a request for a new feature in the codebase, or any other reason… please read this first.
+If you're about to raise an issue because you think you've found a problem with act.contracts, or you'd like to make a request for a new feature in the codebase, or any other reason… please read this first.
 
 The GitHub issue tracker is the preferred channel for [bug reports](#bug-reports), [feature requests](#feature-requests), and [submitting pull requests](#submitting-pull-requests), but please respect the following restrictions:
 

@@ -48,28 +48,28 @@ function default-eosio-directories() {
 function eosio-directory-prompt() {
   if [[ -z $EOSIO_DIR_PROMPT ]]; then
     default-eosio-directories;
-    echo 'No EOSIO location was specified.'
+    echo 'No Achain location was specified.'
     while true; do
       if [[ $NONINTERACTIVE != true ]]; then
         if [[ -z $EOSIO_VERSION ]]; then
-          echo "No default EOSIO installations detected..."
+          echo "No default Achain installations detected..."
           PROCEED=n
         else
-          printf "Is EOSIO installed in the default location: $HOME/eosio/$EOSIO_VERSION (y/n)" && read -p " " PROCEED
+          printf "Is Achain installed in the default location: $HOME/achain/$EOSIO_VERSION (y/n)" && read -p " " PROCEED
         fi
       fi
       echo ""
       case $PROCEED in
         "" )
-          echo "Is EOSIO installed in the default location?";;
+          echo "Is Achain installed in the default location?";;
         0 | true | [Yy]* )
           break;;
         1 | false | [Nn]* )
           if [[ $PROMPT_EOSIO_DIRS ]]; then
-            echo "Found these compatible EOSIO versions in the default location."
-            printf "$HOME/eosio/%s\n" "${PROMPT_EOSIO_DIRS[@]}"
+            echo "Found these compatible Achain versions in the default location."
+            printf "$HOME/achain/%s\n" "${PROMPT_EOSIO_DIRS[@]}"
           fi
-          printf "Enter the installation location of EOSIO:" && read -e -p " " EOSIO_DIR_PROMPT;
+          printf "Enter the installation location of Achain:" && read -e -p " " EOSIO_DIR_PROMPT;
           break;;
         * )
           echo "Please type 'y' for yes or 'n' for no.";;
@@ -83,26 +83,26 @@ function eosio-directory-prompt() {
 # Prompts or default behavior for choosing EOSIO.CDT directory.
 function cdt-directory-prompt() {
   if [[ -z $CDT_DIR_PROMPT ]]; then
-    echo 'No EOSIO.CDT location was specified.'
+    echo 'No ACT.CDT location was specified.'
     while true; do
       if [[ $NONINTERACTIVE != true ]]; then
-        printf "Is EOSIO.CDT installed in the default location? /usr/local/eosio.cdt (y/n)" && read -p " " PROCEED
+        printf "Is ACT.CDT installed in the default location? /usr/local/act.cdt (y/n)" && read -p " " PROCEED
       fi
       echo ""
       case $PROCEED in
         "" )
-          echo "Is EOSIO.CDT installed in the default location?";;
+          echo "Is ACT.CDT installed in the default location?";;
         0 | true | [Yy]* )
           break;;
         1 | false | [Nn]* )
-          printf "Enter the installation location of EOSIO.CDT:" && read -e -p " " CDT_DIR_PROMPT;
+          printf "Enter the installation location of ACT.CDT:" && read -e -p " " CDT_DIR_PROMPT;
           break;;
         * )
           echo "Please type 'y' for yes or 'n' for no.";;
       esac
     done
   fi
-  export CDT_INSTALL_DIR="${CDT_DIR_PROMPT:-/usr/local/eosio.cdt}"
+  export CDT_INSTALL_DIR="${CDT_DIR_PROMPT:-/usr/local/act.cdt}"
 }
 
 
@@ -113,22 +113,22 @@ function nodeos-version-check() {
   INSTALLED_VERSION_MINOR=$(echo $INSTALLED_VERSION | cut -f2 -d '.' | sed 's/v//g')
 
   if [[ -z $INSTALLED_VERSION_MAJOR || -z $INSTALLED_VERSION_MINOR ]]; then
-    echo "Could not determine EOSIO version. Exiting..."
+    echo "Could not determine Achain version. Exiting..."
     exit 1;
   fi
 
   if $(check-version-numbers $INSTALLED_VERSION_MAJOR $INSTALLED_VERSION_MINOR); then
     if [[ $INSTALLED_VERSION_MAJOR -gt $EOSIO_SOFT_MAX_MAJOR ]]; then
-      echo "Detected EOSIO version is greater than recommended soft max: $EOSIO_SOFT_MAX_MAJOR.$EOSIO_SOFT_MAX_MINOR. Proceed with caution."
+      echo "Detected Achain version is greater than recommended soft max: $EOSIO_SOFT_MAX_MAJOR.$EOSIO_SOFT_MAX_MINOR. Proceed with caution."
     fi
     if [[ $INSTALLED_VERSION_MAJOR -eq $EOSIO_SOFT_MAX_MAJOR && $INSTALLED_VERSION_MINOR -gt $EOSIO_SOFT_MAX_MINOR ]]; then
-      echo "Detected EOSIO version is greater than recommended soft max: $EOSIO_SOFT_MAX_MAJOR.$EOSIO_SOFT_MAX_MINOR. Proceed with caution."
+      echo "Detected Achain version is greater than recommended soft max: $EOSIO_SOFT_MAX_MAJOR.$EOSIO_SOFT_MAX_MINOR. Proceed with caution."
     fi
-    echo "Using EOSIO installation at: $EOSIO_INSTALL_DIR"
-    echo "Using EOSIO.CDT installation at: $CDT_INSTALL_DIR"
+    echo "Using Achain installation at: $EOSIO_INSTALL_DIR"
+    echo "Using ACT.CDT installation at: $CDT_INSTALL_DIR"
   else
     echo "Supported versions are: $EOSIO_MIN_VERSION_MAJOR.$EOSIO_MIN_VERSION_MINOR - $EOSIO_MAX_VERSION_MAJOR.$EOSIO_MAX_VERSION_MINOR"
-    echo "Invalid EOSIO installation. Exiting..."
+    echo "Invalid Achain installation. Exiting..."
     exit 1;
   fi
   export CMAKE_FRAMEWORK_PATH="${EOSIO_INSTALL_DIR}:${CDT_INSTALL_DIR}:${CMAKE_PREFIX_PATH}"
