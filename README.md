@@ -6,17 +6,17 @@ The design of the Achain blockchain calls for a number of smart contracts that a
 
 This repository contains examples of these privileged contracts that are useful when deploying, managing, and/or using an Achain blockchain.  They are provided for reference purposes:
 
-   * [eosio.bios](./contracts/eosio.bios)
-   * [eosio.system](./contracts/eosio.system)
-   * [eosio.msig](./contracts/eosio.msig)
-   * [eosio.wrap](./contracts/eosio.wrap)
+   * [act.bios](./contracts/act.bios)
+   * [act.system](./contracts/act.system)
+   * [act.msig](./contracts/act.msig)
+   * [act.wrap](./contracts/act.wrap)
 
 The following unprivileged contract(s) are also part of the system.
-   * [eosio.token](./contracts/eosio.token)
+   * [act.token](./contracts/act.token)
 
 Dependencies:
-* [Achain v1.1]()
-* [act.cdt v1.6.x]()
+* [Achain v1.1](https://github.com/Achain-Dev/Achain2.0/tree/actx1.1)
+* [act.cdt v1.6.x](https://github.com/Achain-Dev/act.cdt)
 
 To build the contracts and the unit tests:
 * First, ensure that your __achain__ is compiled to the core symbol for the Achain blockchain that intend to deploy to.
