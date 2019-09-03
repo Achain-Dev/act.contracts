@@ -79,7 +79,6 @@ namespace eosiosystem {
     * @ingroup eosiocontracts
     * act.system contract defines the structures and actions needed for blockchain's core functionality.
     * - Users can stake tokens for CPU and Network bandwidth, and then vote for producers or
-    *    delegate their vote to a proxy.
     * - Producers register in order to be voted for, and can claim per-block and per-vote rewards.
     * - Users can buy and sell RAM at a market-determined price.
     * - Users can bid on premium names.
@@ -221,13 +220,12 @@ namespace eosiosystem {
     *
     * @details Voter info stores information about the voter:
     * - `owner` the voter
-    * - `proxy` the proxy set by the voter, if any
-    * - `producers` the producers approved by this voter if no proxy set
+    * - `producers` the producers approved by this voter
     * - `staked` the amount staked
     */
    struct [[eosio::table, eosio::contract("act.system")]] voter_info {
       name                owner;     /// the voter
-      std::map<account_name, int64_t>   producers; /// the producers approved by this voter,voter投票使用的抵押数量
+      std::map<name, int64_t>   producers; /// the producers approved by this voter,voter投票使用的抵押数量
       int64_t             staked = 0;       //记录抵押的数量(10 ^ 4)
       int64_t             current_stake = 0; //当前投票已经使用的数量(10 ^ 4)
       uint32_t            flags1 = 0;
@@ -575,7 +573,7 @@ namespace eosiosystem {
          void onblock( ignore<block_header> header );
          
          [[eosio::action]]
-         void newaccount( name creator,name newact);
+         void newaccount(const name& creator, const name& newact);
          /**
           * Set account limits action.
           *
@@ -703,7 +701,7 @@ namespace eosiosystem {
           * @param amount - amount of tokens taken out of 'from' REX fund.
           *
           * @pre A voting requirement must be satisfied before action can be executed.
-          * @pre User must vote for at least 21 producers or delegate vote to proxy before buying REX.
+          * @pre User must vote for at least one producers before buying REX.
           *
           * @post User votes are updated following this action.
           * @post Tokens used in purchase are added to user's voting power.
@@ -724,7 +722,7 @@ namespace eosiosystem {
           * @param from_cpu - amount of tokens to be unstaked from CPU bandwidth and used for REX purchase.
           *
           * @pre A voting requirement must be satisfied before action can be executed.
-          * @pre User must vote for at least 21 producers or delegate vote to proxy before buying REX.
+          * @pre User must vote for at least one producer before buying REX.
           *
           * @post User votes are updated following this action.
           * @post Tokens used in purchase are added to user's voting power.
@@ -1066,48 +1064,20 @@ namespace eosiosystem {
          /**
           * Vote producer action.
           *
-          * @details Votes for a set of producers. This action updates the list of `producers` voted for,
-          * for `voter` account. If voting for a `proxy`, the producer votes will not change until the
-          * proxy updates their own vote. Voter can vote for a proxy __or__ a list of at most 30 producers.
-          * Storage change is billed to `voter`.
-          *
           * @param voter - the account to change the voted producers for,
-          * @param proxy - the proxy to change the voted producers for,
-          * @param producers - the list of producers to vote for, a maximum of 30 producers is allowed.
+          * @param producer - the list of producer to vote for, a maximum of 30 producers is allowed.
           *
           * @pre Producers must be sorted from lowest to highest and must be registered and active
-          * @pre If proxy is set then no producers can be voted for
-          * @pre If proxy is set then proxy account must exist and be registered as a proxy
-          * @pre Every listed producer or proxy must have been previously registered
+          * @pre Every listed producer must have been previously registered
           * @pre Voter must authorize this action
-          * @pre Voter must have previously staked some EOS for voting
+          * @pre Voter must have previously staked some ACT for voting
           * @pre Voter->staked must be up to date
           *
           * @post Every producer previously voted for will have vote reduced by previous vote weight
           * @post Every producer newly voted for will have vote increased by new vote amount
-          * @post Prior proxy will proxied_vote_weight decremented by previous vote weight
-          * @post New proxy will proxied_vote_weight incremented by new vote weight
           */
          [[eosio::action]]
-         void voteproducer( const name& voter, const name& proxy, const std::vector<name>& producers );
-
-         /**
-          * Register proxy action.
-          *
-          * @details Set `proxy` account as proxy.
-          * An account marked as a proxy can vote with the weight of other accounts which
-          * have selected it as a proxy. Other accounts must refresh their voteproducer to
-          * update the proxy's weight.
-          * Storage change is billed to `proxy`.
-          *
-          * @param rpoxy - the account registering as voter proxy (or unregistering),
-          * @param isproxy - if true, proxy is registered; if false, proxy is unregistered.
-          *
-          * @pre Proxy must have something staked (existing row in voters table)
-          * @pre New state must be different than current state
-          */
-         [[eosio::action]]
-         void regproxy( const name& proxy, bool isproxy );
+         void voteproducer( const name& voter_name, const name& producer, const asset& skate );
 
          /**
           * Set the blockchain parameters
@@ -1222,7 +1192,6 @@ namespace eosiosystem {
          using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
          using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
          using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
-         using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
          using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
          using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
          using bidname_action = eosio::action_wrapper<"bidname"_n, &system_contract::bidname>;
@@ -1250,7 +1219,7 @@ namespace eosiosystem {
          void runrex( uint16_t max );
          void update_resource_limits( const name& from, const name& receiver, int64_t delta_net, int64_t delta_cpu );
          void check_voting_requirement( const name& owner,
-                                        const char* error_msg = "must vote for at least 21 producers or for a proxy before buying REX" )const;
+                                        const char* error_msg = "must vote for at least one producer before buying REX" )const;
          rex_order_outcome fill_rex_order( const rex_balance_table::const_iterator& bitr, const asset& rex );
          asset update_rex_account( const name& owner, const asset& proceeds, const asset& unstake_quant, bool force_vote_update = false );
          void channel_to_rex( const name& from, const asset& amount );

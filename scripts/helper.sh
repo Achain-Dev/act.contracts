@@ -1,7 +1,7 @@
 # Ensures passed in version values are supported.
 function check-version-numbers() {
   CHECK_VERSION_MAJOR=$1
-  CHECK_VERSION_MINOR=$2
+  CHECK_VERSION_MINOR=1
 
   if [[ $CHECK_VERSION_MAJOR -lt $EOSIO_MIN_VERSION_MAJOR ]]; then
     exit 1
@@ -26,7 +26,7 @@ function check-version-numbers() {
 # Handles choosing which EOSIO directory to select when the default location is used.
 function default-eosio-directories() {
   REGEX='^[0-9]+([.][0-9]+)?$'
-  ALL_EOSIO_SUBDIRS=($(ls ${HOME}/eosio | sort -V))
+  ALL_EOSIO_SUBDIRS=($(ls ${HOME}/achain | sort -V))
   for ITEM in "${ALL_EOSIO_SUBDIRS[@]}"; do
     if [[ "$ITEM" =~ $REGEX ]]; then
       DIR_MAJOR=$(echo $ITEM | cut -f1 -d '.')
@@ -59,6 +59,8 @@ function eosio-directory-prompt() {
         fi
       fi
       echo ""
+      echo "here1 EOSIO_DIR_PROMPT = ${EOSIO_DIR_PROMPT}"
+      echo "EOSIO_VERSION=${EOSIO_VERSION}"
       case $PROCEED in
         "" )
           echo "Is Achain installed in the default location?";;
@@ -76,7 +78,7 @@ function eosio-directory-prompt() {
       esac
     done
   fi
-  export EOSIO_INSTALL_DIR="${EOSIO_DIR_PROMPT:-${HOME}/eosio/${EOSIO_VERSION}}"
+  export EOSIO_INSTALL_DIR="${EOSIO_DIR_PROMPT:-${HOME}/achain/${EOSIO_VERSION}}"
 }
 
 
@@ -131,5 +133,9 @@ function nodeos-version-check() {
     echo "Invalid Achain installation. Exiting..."
     exit 1;
   fi
-  export CMAKE_FRAMEWORK_PATH="${EOSIO_INSTALL_DIR}:${CDT_INSTALL_DIR}:${CMAKE_PREFIX_PATH}"
+
+#  export CMAKE_FRAMEWORK_PATH="${EOSIO_INSTALL_DIR}:${CDT_INSTALL_DIR}:${CMAKE_PREFIX_PATH}"
+  export CMAKE_FRAMEWORK_PATH="${EOSIO_INSTALL_DIR}"
+  echo "CMAKE_FRAMEWORK_PATH=${CMAKE_FRAMEWORK_PATH}"
+  echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
 }

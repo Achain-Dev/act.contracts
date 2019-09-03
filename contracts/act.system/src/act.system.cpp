@@ -272,12 +272,10 @@ namespace eosiosystem {
     *
     */
    void system_contract::newaccount( const name&       creator,
-                            const name&       newact,
-                            ignore<authority> owner,
-                            ignore<authority> active ) {
+                            const name&       newact) {
       
       //add for nobid
-      if (is_chain_func_open(N(f.nobid))){
+      if (is_chain_func_open("f.nobid"_n)){
          if( creator != get_self() ) {
             uint64_t tmp = newact.value >> 4;
             bool has_dot = false;
@@ -305,8 +303,8 @@ namespace eosiosystem {
       //add for achain2.0
       //free ram for every new account
       int64_t free_ram = 0;
-      if (is_chain_func_open(N(r.freeram)))
-         free_ram = get_chain_config_value(N(r.freeram));
+      if (eosio::is_chain_func_open("r.freeram"_n))
+         free_ram = eosio::get_chain_config_value("r.freeram"_n);
 
       _gstate.total_ram_bytes_reserved += free_ram;
       _gstate.total_free_ram_accounts += 1;
@@ -366,11 +364,11 @@ namespace eosiosystem {
 
       require_auth(get_self());
 
-      uint32_t schedule_size = get_proposed_schedule_size();
+      auto schedule_size = eosio::get_proposed_schedule_size();
       
-      check( bp_number > schedule_size, "new size must be larger than current size" );
+      check( bp_number > *schedule_size, "new size must be larger than current size" );
 
-      set_proposed_schedule_size(bp_number);
+      eosio::set_proposed_schedule_size(bp_number);
    }
 
 } /// act.system

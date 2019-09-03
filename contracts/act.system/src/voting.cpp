@@ -81,8 +81,8 @@ namespace eosiosystem {
 
       std::vector< std::pair<eosio::producer_key,uint16_t> > top_producers;
       //add for Achain2.0
-      auto producer_size = get_proposed_schedule_size();
-      top_producers.reserve(producer_size);
+      auto producer_size = eosio::get_proposed_schedule_size();
+      top_producers.reserve(*producer_size);
 
       for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < producer_size && 0 < it->total_votes && it->active(); ++it ) {
          top_producers.emplace_back( std::pair<eosio::producer_key,uint16_t>({{it->owner, it->producer_key}, it->location}) );
@@ -169,7 +169,7 @@ namespace eosiosystem {
       update_votes( voter_name, producer, skate );
       auto rex_itr = _rexbalance.find( voter_name.value );
       if( rex_itr != _rexbalance.end() && rex_itr->rex_balance.amount > 0 ) {
-         check_voting_requirement( voter_name, "voter holding REX tokens must vote for at least 21 producers or for a proxy" );
+         check_voting_requirement( voter_name, "voter holding REX tokens must vote for at least one producer" );
       }
    }
 
@@ -183,19 +183,19 @@ namespace eosiosystem {
       if ( _gstate.total_activated_stake >= min_activated_stake && _gstate.thresh_activated_stake_time == time_point() ) {
          _gstate.thresh_activated_stake_time = current_time_point();
       }
-	  if (_gstate.total_activated_stake < min_activated_stake && _gstate.thresh_activated_stake_time > 0 )
+      if (_gstate.total_activated_stake < min_activated_stake && _gstate.thresh_activated_stake_time >time_point())
       {
          _gstate.thresh_activated_stake_time = time_point();
       }
 
-	  //刷新voter的producer信息
-	  auto producers = voter->producers;
+      //刷新voter的producer信息
+      auto producers = voter->producers;
       auto p_iter = producers.find(producer);
       if (p_iter == producers.end()){
          check( stake.amount > 0, "the producer is not in the vote list" );
          check( producers.size() <= 30, "attempt to vote for too many producers" );
 	  
-         producers.emplace(std::map<account_name, int64_t>::value_type(producer, stake.amount));
+         producers.emplace(std::map<name, int64_t>::value_type(producer, stake.amount));
       }
       else{
          check(p_iter->second + stake.amount >= 0, "attempt to unvote more votes" );
