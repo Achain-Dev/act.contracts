@@ -366,7 +366,7 @@ namespace eosiosystem {
 
       auto schedule_size = eosio::get_proposed_schedule_size();
       
-      check( bp_number > *schedule_size, "new size must be larger than current size" );
+      check( bp_number > schedule_size, "new size must be larger than current size" );
 
       eosio::set_proposed_schedule_size(bp_number);
    }

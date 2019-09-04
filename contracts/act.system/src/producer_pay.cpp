@@ -42,7 +42,7 @@ namespace eosiosystem {
       }
       //add for dynamic bp num
       auto producer_size = eosio::get_proposed_schedule_size();
-      uint32_t slot = (*producer_size - 1) * 6;
+      uint32_t slot = (producer_size - 1) * 6;
 
       /// only update block producers once producer_num * 6
       if( timestamp.slot - _gstate.last_producer_schedule_update.slot > slot ) {

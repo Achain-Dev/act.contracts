@@ -82,7 +82,7 @@ namespace eosiosystem {
       std::vector< std::pair<eosio::producer_key,uint16_t> > top_producers;
       //add for Achain2.0
       auto producer_size = eosio::get_proposed_schedule_size();
-      top_producers.reserve(*producer_size);
+      top_producers.reserve(producer_size);
 
       for ( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < producer_size && 0 < it->total_votes && it->active(); ++it ) {
          top_producers.emplace_back( std::pair<eosio::producer_key,uint16_t>({{it->owner, it->producer_key}, it->location}) );
