@@ -151,7 +151,6 @@ namespace eosiosystem {
       public:
 
          using eosio::contract::contract;
-
          /**
           * @{
           * These actions map one-on-one with the ones defined in
@@ -303,8 +302,9 @@ namespace eosiosystem {
          void setcode( const name& account, uint8_t vmtype, uint8_t vmversion, const std::vector<char>& code ) {}
 
          /** @}*/
-
-         //using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
+#if 0
+         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
+#endif
          using updateauth_action = eosio::action_wrapper<"updateauth"_n, &native::updateauth>;
          using deleteauth_action = eosio::action_wrapper<"deleteauth"_n, &native::deleteauth>;
          using linkauth_action = eosio::action_wrapper<"linkauth"_n, &native::linkauth>;

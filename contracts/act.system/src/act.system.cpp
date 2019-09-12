@@ -275,7 +275,7 @@ namespace eosiosystem {
                             const name&       newact) {
       
       //add for nobid
-      if (is_chain_func_open("f.nobid"_n)){
+      if (eosio::is_chain_func_open("f.nobid"_n)){
          if( creator != get_self() ) {
             uint64_t tmp = newact.value >> 4;
             bool has_dot = false;
@@ -299,12 +299,12 @@ namespace eosiosystem {
             }   
          }
       }
-      
       //add for achain2.0
       //free ram for every new account
       int64_t free_ram = 0;
-      if (eosio::is_chain_func_open("r.freeram"_n))
+      if (eosio::is_chain_func_open("r.freeram"_n)){
          free_ram = eosio::get_chain_config_value("r.freeram"_n);
+      }
 
       _gstate.total_ram_bytes_reserved += free_ram;
       _gstate.total_free_ram_accounts += 1;

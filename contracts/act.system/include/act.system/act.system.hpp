@@ -571,9 +571,10 @@ namespace eosiosystem {
           */
          [[eosio::action]]
          void onblock( ignore<block_header> header );
-         
+      #if 1   
          [[eosio::action]]
          void newaccount(const name& creator, const name& newact);
+      #endif
          /**
           * Set account limits action.
           *
@@ -1157,7 +1158,9 @@ namespace eosiosystem {
          void setbpnum(uint32_t bp_number);
 
          using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
+#if 1         
          using newaccount_action = eosio::action_wrapper<"newaccount"_n, &system_contract::newaccount>;
+#endif        
          using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
          using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
          using setacctcpu_action = eosio::action_wrapper<"setacctcpu"_n, &system_contract::setacctcpu>;
