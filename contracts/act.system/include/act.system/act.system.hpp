@@ -1155,7 +1155,7 @@ namespace eosiosystem {
          //add for achainplus
          //set BP number dynamically, the number just be increased
          [[eosio::action]]
-         void setbpnum(uint32_t bp_number);
+         void setbpnum(uint32_t counts);
 
          using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
 #if 1         
