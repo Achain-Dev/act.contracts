@@ -1078,7 +1078,7 @@ namespace eosiosystem {
           * @post Every producer newly voted for will have vote increased by new vote amount
           */
          [[eosio::action]]
-         void voteproducer( const name& voter_name, const name& producer, const asset& skate );
+         void voteproducer( const name& voter, const name& producer, const asset& votes );
 
          /**
           * Set the blockchain parameters

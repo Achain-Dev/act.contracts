@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eosio/action.hpp>
+#include <eosio/asset.hpp>
 #include <eosio/contract.hpp>
 #include <eosio/crypto.hpp>
 #include <eosio/fixed_bytes.hpp>
@@ -8,7 +9,7 @@
 #include <eosio/print.hpp>
 #include <eosio/privileged.hpp>
 #include <eosio/producer_schedule.hpp>
-
+#include <string>
 // This header is needed until `is_feature_activiated` and `preactivate_feature` are added to `eosio.cdt`
 #include <eosio/../../capi/eosio/crypto.h>
 
@@ -182,12 +183,12 @@ namespace eosiosystem {
          #endif
          
          [[eosio::action]]
-         void setconfig(/*ignore<name>  account,
-                        ignore<int64_t> value,
-                        ignore<int64_t> valid_block,
-                        ignore<name>  key,
-                        ignore<eosio::chain::asset> asset_info,
-                        ignore<string> desc */){}        
+         void setconfig(name  cfg_name,
+                        int64_t value,
+                        int64_t valid_block,
+                        name  key = name(),
+                        eosio::asset asset_info = eosio::asset(),
+                        std::string desc = "nothing"){}        
          /**
           * Update authorization action.
           *
