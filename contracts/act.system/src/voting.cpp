@@ -176,7 +176,7 @@ namespace eosiosystem {
    void system_contract::update_votes( const name& voter_name, const name& producer, const asset& stake) {
       auto voter = _voters.find( voter_name.value );
       check( voter != _voters.end(), "user must stake before they can vote" ); /// staking creates voter object
-      check( voter->current_stake + stake.amount < voter->staked, "attempt to vote more votes" );
+      check( voter->current_stake + stake.amount <= voter->staked, "attempt to vote more votes" );
 
 	  //刷新投票总量信息
       _gstate.total_activated_stake += stake.amount;
