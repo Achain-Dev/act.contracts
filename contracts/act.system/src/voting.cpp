@@ -178,14 +178,16 @@ namespace eosiosystem {
       check( voter != _voters.end(), "user must stake before they can vote" ); /// staking creates voter object
       check( voter->current_stake + stake.amount <= voter->staked, "attempt to vote more votes" );
 
-	  //刷新投票总量信息
-      _gstate.total_activated_stake += stake.amount;
-      if ( _gstate.total_activated_stake >= min_activated_stake && _gstate.thresh_activated_stake_time == time_point() ) {
-         _gstate.thresh_activated_stake_time = current_time_point();
-      }
-      if (_gstate.total_activated_stake < min_activated_stake && _gstate.thresh_activated_stake_time >time_point())
-      {
-         _gstate.thresh_activated_stake_time = time_point();
+      //刷新投票总量信息
+      if (stake.amount > 0){
+         _gstate.total_activated_stake += stake.amount;
+         if ( _gstate.total_activated_stake >= min_activated_stake && _gstate.thresh_activated_stake_time == time_point() ) {
+            _gstate.thresh_activated_stake_time = current_time_point();
+         }
+         if (_gstate.total_activated_stake < min_activated_stake && _gstate.thresh_activated_stake_time >time_point())
+         {
+            _gstate.thresh_activated_stake_time = time_point();
+         }
       }
 
       //刷新voter的producer信息
