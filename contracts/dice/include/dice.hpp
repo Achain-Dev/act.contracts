@@ -1,10 +1,10 @@
 #pragma once
-
-#include <eosiolib/crypto.h>
-#include <eosiolib/system.h>
+#include <eosio/crypto.hpp>
+#include <eosio/system.h>
+#include <eosio/system.hpp>
+#include <eosio/fixed_bytes.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/eosio.hpp>
-#include <eosio/system.hpp>
 #include <eosio/transaction.hpp>
 
 #include <vector>
@@ -71,55 +71,55 @@ namespace eoswin {
       };
 
       TABLE st_seeds {
-        capi_checksum256 seed1;
-        capi_checksum256 seed2;
+        checksum256 seed1;
+        checksum256 seed2;
       };
 
     public:
       template<class T>
-      capi_checksum256 create_sys_seed(T mixed) const;
+      checksum256 create_sys_seed(T mixed) const;
 
-      void seed(capi_checksum256 sseed, capi_checksum256 useed);
+      void seed(checksum256 sseed, checksum256 useed);
 
-      void mixseed(capi_checksum256& sseed, capi_checksum256& useed, capi_checksum256& result) const;
+      void mixseed(checksum256& sseed, checksum256& useed, checksum256& result) const;
 
       // generator number ranged [0, max-1]
       uint64_t generator(uint64_t max = 101);
 
-      uint64_t gen(capi_checksum256& seed, uint64_t max = 101) const;
+      uint64_t gen(checksum256& seed, uint64_t max = 101) const;
 
-      capi_checksum256 get_sys_seed() const;
-      capi_checksum256 get_user_seed() const;
-      capi_checksum256 get_mixed() const;
-      capi_checksum256 get_seed() const;
+      checksum256 get_sys_seed() const;
+      checksum256 get_user_seed() const;
+      checksum256 get_mixed() const;
+      checksum256 get_seed() const;
     private:
-      capi_checksum256 _sseed;
-      capi_checksum256 _useed;
-      capi_checksum256 _mixed;
-      capi_checksum256 _seed;
+      checksum256 _sseed;
+      checksum256 _useed;
+      checksum256 _mixed;
+      checksum256 _seed;
   };
 
   template<class T>
-  capi_checksum256 random::create_sys_seed(T mixed) const {
-    capi_checksum256 result;
+  checksum256 random::create_sys_seed(T mixed) const {
+    ;
     data<T> mixed_block(mixed);
     const char *mixed_char = reinterpret_cast<const char *>(&mixed_block);
-    sha256((char *)mixed_char, sizeof(mixed_block), &result);
+	checksum256 result = sha256((char *)mixed_char, sizeof(mixed_block));
     return result;
   }
 
-  void random::seed(capi_checksum256 sseed, capi_checksum256 useed) {
+  void random::seed(checksum256 sseed, checksum256 useed) {
     _sseed = sseed;
     _useed = useed;
     mixseed(_sseed, _useed, _mixed);
     _seed  = _mixed;
   }
 
-  void random::mixseed(capi_checksum256& sseed, capi_checksum256& useed, capi_checksum256& result) const {
+  void random::mixseed(checksum256& sseed, checksum256& useed, checksum256& result) const {
     st_seeds seeds;
     seeds.seed1 = sseed;
     seeds.seed2 = useed;
-    sha256( (char *)&seeds.seed1, sizeof(seeds.seed1) * 2, &result);
+	result = sha256( (char *)&seeds.seed1, sizeof(seeds.seed1) * 2);
   }
 
   uint64_t random::generator(uint64_t max) {
@@ -128,7 +128,7 @@ namespace eoswin {
     return r;
   }
 
-  uint64_t random::gen(capi_checksum256& seed, uint64_t max) const {
+  uint64_t random::gen(checksum256& seed, uint64_t max) const {
     if (max <= 0) {
         return 0;
     }
@@ -137,19 +137,19 @@ namespace eoswin {
     return r;
   }
 
-  capi_checksum256 random::get_sys_seed() const {
+  checksum256 random::get_sys_seed() const {
     return _sseed;   
   }
 
-  capi_checksum256 random::get_user_seed() const {
+  checksum256 random::get_user_seed() const {
     return _useed;
   }
 
-  capi_checksum256 random::get_mixed() const {
+  checksum256 random::get_mixed() const {
     return _mixed;
   }
 
-  capi_checksum256 random::get_seed() const {
+  checksum256 random::get_seed() const {
     return _seed;
   }
 }
@@ -195,7 +195,7 @@ CONTRACT dice : public eosio::contract {
 	
 	eosio::name         _code;
 	eoswin::random      _random;
-	capi_checksum256    _seed;
+	checksum256    _seed;
 	
     void setCode(eosio::name code);
 
@@ -214,7 +214,7 @@ CONTRACT dice : public eosio::contract {
       uint8_t                roll_type;
       uint64_t               roll_border;
       uint64_t               roll_value;
-      capi_checksum256       seed;
+      checksum256       seed;
       eosio::time_point_sec  time;
       uint64_t primary_key() const { return id; };
     };
@@ -326,23 +326,8 @@ CONTRACT dice : public eosio::contract {
     _luckyreward_index _luckyrewards;
 
 
-/*     dice( eosio::name self, eosio::name code, datastream<const char*> ds )
-						: eosio::contract(self, code, ds),
-						 _bets(self, self.value),
-						 _globals(self, self.value),
-						 _high_odds_bets(self, self.value),
-						 _large_eos_bets(self, self.value),
-						 _trades(self, _self.value),
-						 _notices(self, _self.value),
-						 _playerlists(self, _self.value),
-						 _ranklists(self, _self.value),
-						 _dailylists(self, _self.value),
-						 _luckers(self, self.value),
-						 _luckyrewards(self, _self.value)
-
-    {
-      
-    } */
+	dice( eosio::name s, eosio::name code, datastream<const char*> ds );
+	~dice() {}
 
     /// @abi action
     ACTION setactive(bool active);
@@ -388,7 +373,7 @@ CONTRACT dice : public eosio::contract {
 
     /// @abi action
     ACTION receipt(uint64_t bet_id, eosio::name bettor, eosio::asset bet_amt, vector<eosio::asset> payout_list, 
-                    capi_checksum256 seed, uint8_t roll_type, uint64_t roll_border, uint64_t roll_value);
+                    checksum256 seed, uint8_t roll_type, uint64_t roll_border, uint64_t roll_value);
 
     void to_jackpot(eosio::name bettor, eosio::asset bet_asset);
 
@@ -406,25 +391,25 @@ CONTRACT dice : public eosio::contract {
 
     void init_bet(bet& a, uint64_t id, uint64_t bet_id, eosio::name contract, eosio::name bettor, eosio::name inviter,
                   uint64_t bet_amt, vector<eosio::asset> payout, uint8_t roll_type, uint64_t roll_border,
-                  uint64_t roll_value, capi_checksum256 seed, eosio::time_point_sec time);
+                  uint64_t roll_value, checksum256 seed, eosio::time_point_sec time);
 
     void save_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list,
 				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
-                  capi_checksum256 seed, eosio::time_point_sec time);
+                  checksum256 seed, eosio::time_point_sec time);
 
     void save_highodds_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list, 
 				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, 
-                  capi_checksum256 seed, eosio::time_point_sec time);
+                  checksum256 seed, eosio::time_point_sec time);
 
     void save_large_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list, 
 				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
-                  capi_checksum256 seed, eosio::time_point_sec time);
+                  checksum256 seed, eosio::time_point_sec time);
 
     /// @abi action
-    ACTION verify(capi_checksum256 seed);
+    ACTION verify(checksum256 seed);
 
     void check_symbol(eosio::asset quantity);
 
@@ -451,8 +436,8 @@ CONTRACT dice : public eosio::contract {
     eosio::asset get_luck_reward(uint64_t roll_number);
 
     /// @abi action
-    ACTION luckreceipt(eosio::name name, capi_checksum256 seed, uint64_t roll_value, vector<eosio::asset> rewards, uint64_t draw_time);
+    ACTION luckreceipt(eosio::name name, checksum256 seed, uint64_t roll_value, vector<eosio::asset> rewards, uint64_t draw_time);
 
     /// @abi action
-    ACTION luckverify(capi_checksum256 seed);
+    ACTION luckverify(checksum256 seed);
 };

@@ -7,25 +7,22 @@ using namespace std;
 /********************************* bet *********************************/
 void dice::setCode(eosio::name code) { _code = code; }
 
- 
-/*     dice( eosio::name self, eosio::name code, datastream<const char*> ds )
-						: eosio::contract(self, code, ds),
-						 _bets(self, self.value),
-						 _globals(self, self.value),
-						 _high_odds_bets(self, self.value),
-						 _large_eos_bets(self, self.value),
-						 _trades(self, get_self().value),
-						 _notices(self, get_self().value),
-						 _playerlists(self, get_self().value),
-						 _ranklists(self, get_self().value),
-						 _dailylists(self, get_self().value),
-						 _luckers(self, self.value),
-						 _luckyrewards(self, get_self().value)
-
-    {
-      
-    } */
-
+dice::dice(eosio::name self, eosio::name code, datastream<const char*> ds )
+					: eosio::contract(self, code, ds),
+					 _bets(self, self.value),
+					 _globals(self, self.value),
+					 _high_odds_bets(self, self.value),
+					 _large_eos_bets(self, self.value),
+					 _trades(self, get_self().value),
+					 _notices(self, get_self().value),
+					 _playerlists(self, get_self().value),
+					 _ranklists(self, get_self().value),
+					 _dailylists(self, get_self().value),
+					 _luckers(self, get_self().value),
+					 _luckyrewards(self, get_self().value)
+{
+  
+}
 /// @abi action
 ACTION dice::setactive(bool active) {
       require_auth(get_self());
@@ -178,7 +175,7 @@ ACTION dice::setglobal(uint64_t id, uint64_t value) {
   }
 }
 
-ACTION dice::to_bonus_bucket(eosio::symbol sym_name) {
+void dice::to_bonus_bucket(eosio::symbol sym_name) {
   //eosio::symbol sym_name = eosio::symbol(sym).name();
   auto trade_iter = _trades.find(sym_name.raw());
   
@@ -359,8 +356,7 @@ uint64_t dice::get_random(uint64_t max) {
   auto s = read_transaction(nullptr, 0);
   char *tx = (char *)malloc(s);
   read_transaction(tx, s);
-  capi_checksum256 txid;
-  sha256(tx, s, &txid);
+  checksum256 txid = sha256(tx, s); //todo
   printhex(&txid, sizeof(txid));
 
   _random.seed(sseed, txid);
@@ -561,7 +557,7 @@ ACTION dice::resolved(eosio::name bettor, eosio::asset bet_asset,
 
 /// @abi action
 ACTION dice::receipt(uint64_t bet_id, eosio::name bettor, eosio::asset bet_amt, vector<eosio::asset> payout_list, 
-				capi_checksum256 seed, uint8_t roll_type, uint64_t roll_border, uint64_t roll_value)
+				checksum256 seed, uint8_t roll_type, uint64_t roll_border, uint64_t roll_value)
 {
   require_auth(get_self());
   require_recipient( bettor );
@@ -727,7 +723,7 @@ void dice::save_daily_list(eosio::name bettor, eosio::asset betin, eosio::asset 
 
 void dice::init_bet(bet& a, uint64_t id, uint64_t bet_id, eosio::name contract, eosio::name bettor, eosio::name inviter,
 			  uint64_t bet_amt, vector<eosio::asset> payout, uint8_t roll_type, uint64_t roll_border,
-			  uint64_t roll_value, capi_checksum256 seed, eosio::time_point_sec time) {
+			  uint64_t roll_value, checksum256 seed, eosio::time_point_sec time) {
   a.id = id;
   a.bet_id = bet_id;
   a.contract = contract;
@@ -746,7 +742,7 @@ void dice::init_bet(bet& a, uint64_t id, uint64_t bet_id, eosio::name contract, 
 void dice::save_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list,
 				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
-                  capi_checksum256 seed, eosio::time_point_sec time) {
+                  checksum256 seed, eosio::time_point_sec time) {
   uint64_t bet_amt = bet_quantity.amount;
   eosio::symbol sym_name = bet_quantity.symbol;
   auto trade_iter = _trades.find(sym_name.raw());
@@ -783,7 +779,7 @@ void dice::save_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter,
 void dice::save_highodds_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list, 
 				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, 
-                  capi_checksum256 seed, eosio::time_point_sec time) {
+                  checksum256 seed, eosio::time_point_sec time) {
 				
   if ((roll_type == ROLL_TYPE_SMALL && roll_value < roll_border && roll_border < WONDER_HIGH_ODDS)
 	|| (roll_type == ROLL_TYPE_BIG && roll_value > roll_border && roll_border > (BET_MAX_NUM - WONDER_HIGH_ODDS))) {
@@ -821,7 +817,7 @@ void dice::save_highodds_bet(uint64_t bet_id, eosio::name bettor, eosio::name in
 }
 
 void dice::save_large_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, eosio::asset bet_quantity, vector<eosio::asset> payout_list,
-			  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, capi_checksum256 seed, eosio::time_point_sec time) {
+			  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, checksum256 seed, eosio::time_point_sec time) {
   uint64_t bet_amt = bet_quantity.amount;
   eosio::symbol sym_name = bet_quantity.symbol;
   auto trade_iter = _trades.find(sym_name.raw());
@@ -858,7 +854,7 @@ void dice::save_large_bet(uint64_t bet_id, eosio::name bettor, eosio::name invit
 }
 
 /// @abi action
-ACTION dice::verify(capi_checksum256 seed) {
+ACTION dice::verify(checksum256 seed) {
   uint64_t r = _random.gen(seed, BET_MAX_NUM);
   string str = string("Random value ") + to_string(r);
   check(false, str.c_str());
@@ -1034,46 +1030,14 @@ eosio::asset dice::get_luck_reward(uint64_t roll_number) {
 }
 
 /// @abi action
-ACTION dice::luckreceipt(eosio::name name, capi_checksum256 seed, uint64_t roll_value, vector<eosio::asset> rewards, uint64_t draw_time) {
+ACTION dice::luckreceipt(eosio::name name, checksum256 seed, uint64_t roll_value, vector<eosio::asset> rewards, uint64_t draw_time) {
   require_auth(get_self());
   require_recipient(name);
 }
 
 /// @abi action
-ACTION dice::luckverify(capi_checksum256 seed) {
+ACTION dice::luckverify(checksum256 seed) {
   uint64_t r = _random.gen(seed, LUCK_DRAW_MAX);
   string str = string("Random value ") + to_string(r);
   check(false, str.c_str());
 }
-
-/* 
-#define EOSIO_ABI_EX(TYPE, MEMBERS)                                                  \
-  extern "C"                                                                         \
-  {                                                                                  \
-    void apply(uint64_t receiver, uint64_t code, uint64_t action)                  \
-		{                                                                              \
-			if (code == "act"_n.value && action == "onerror"_n.value)                                                  \
-			{                                                                          \
-				eosio_assert(code == "act"_n.value, "onerror action's are only valid from " \
-                         "the \"ACT\" system account");          \
-			}                                                                          \
-	    TYPE thiscontract;  \
-      if (( code == TOKEN_CONTRACT.value || code == GAME_TOKEN_CONTRACT.value || code == ADD_CONTRACT.value \
-			|| code == ATD_CONTRACT.value || code == DAC_CONTRACT.value || code == HORUS_CONTRACT.value \
-			|| code == IQ_CONTRACT.value || code == KARMA_CONTRACT.value || code == TP_CONTRACT.value\
-			|| code == MEET_CONTRACT.value || code == BLACK_CONTRACT.value) \
-        && (action == transfer_action.value)) {  \
-          thiscontract.setCode(name(code));\
-          execute_action(&thiscontract, &dice::transfer);  \
-          return;  \
-      } \
-      if (code != receiver) return;  \
-      switch (action) { \
-        EOSIO_API(TYPE, MEMBERS) \
-      };  \
-      eosio_exit(0);                                                                         \
-		}                                                                                 \
-  }
-
-EOSIO_ABI_EX(dice, (init)(setactive)(setglobal)(setnotice)(setluckrwd)(setriskline)(setdivi)(setminbet)(receipt)(rewardlucky)(verify)(start)(resolved)(luck)(lucking)(lucked)(luckreceipt)(luckverify))
- */
