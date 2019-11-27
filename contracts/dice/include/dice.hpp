@@ -46,7 +46,6 @@
 #define BET_MAX_NUM 100 
 #define INVITE_BONUS 0.005 
 #define JACKPOT_BONUS 0.005 
-#define TOP_NOTICE 1
 #define DAY_SECONDS 86400
 #define HOUR_SECONDS 3600
 #define LUCK_DRAW_MAX 10001
@@ -54,8 +53,8 @@
 using namespace eosio;
 using namespace std;
 /********* random ***********/
-namespace eoswin {	
-	class random {
+namespace eoswin {  
+    class random {
     public:
       template<class T>
       TABLE data {
@@ -104,7 +103,7 @@ namespace eoswin {
     ;
     data<T> mixed_block(mixed);
     const char *mixed_char = reinterpret_cast<const char *>(&mixed_block);
-	checksum256 result = sha256((char *)mixed_char, sizeof(mixed_block));
+    checksum256 result = sha256((char *)mixed_char, sizeof(mixed_block));
     return result;
   }
 
@@ -119,7 +118,7 @@ namespace eoswin {
     st_seeds seeds;
     seeds.seed1 = sseed;
     seeds.seed2 = useed;
-	result = sha256( (char *)&seeds.seed1, sizeof(seeds.seed1) * 2);
+    result = sha256( (char *)&seeds.seed1, sizeof(seeds.seed1) * 2);
   }
 
   uint64_t random::generator(uint64_t max) {
@@ -157,46 +156,28 @@ namespace eoswin {
 
 CONTRACT dice : public eosio::contract {
   public:
-	using contract::contract;
+    using contract::contract;
 
     const uint64_t to_bonus_bucket_interval = 1*3600*uint64_t(1000000);
     const uint64_t luck_draw_interval = 1*3600*uint64_t(1000000);
 
     static constexpr eosio::name   active_permission{"active"_n};
-	static constexpr eosio::name   TOKEN_CONTRACT{"act.token"_n};
-    static constexpr eosio::name   stake_account{"act.stake"_n};	
-	static constexpr eosio::name   GAME_TOKEN_CONTRACT{"actlucktoken"_n};
-	static constexpr eosio::name   _game_token{"actlucktoken"_n};
-	static constexpr eosio::name   TEAM_ACCOUNT {"luckyaddress"_n};
-	static constexpr eosio::name   DIVI_ACCOUNT {"actwinbonus1"_n};
-	static constexpr eosio::name   JACKPOT_ACCOUNT {"winjackpot11"_n};
-	static constexpr eosio::name   ADD_CONTRACT {"actadddddddd"_n};
-	static constexpr eosio::name   ATD_CONTRACT {"actatidiumio"_n};
-	static constexpr eosio::name   DAC_CONTRACT {"actdactokens"_n};
-	static constexpr eosio::name   HORUS_CONTRACT {"horustokenio"_n};
-	static constexpr eosio::name   IQ_CONTRACT {"everipediaiq"_n};
-	static constexpr eosio::name   KARMA_CONTRACT {"therealkarma"_n};
-	static constexpr eosio::name   TP_CONTRACT {"actiotptoken"_n};
-	static constexpr eosio::name   MEET_CONTRACT {"actiomeetone"_n};
-	static constexpr eosio::name   BLACK_CONTRACT {"actblackteam"_n};
-	static constexpr eosio::name   transfer_action{"transfer"_n};
-	
-	static constexpr eosio::symbol ACT_SYMBOL = symbol(symbol_code("ACT"), 4);
-	static constexpr eosio::symbol GAME_SYMBOL = symbol(symbol_code("LUCKY"), 4); 
-	static constexpr eosio::symbol ADD_SYMBOL = symbol(symbol_code("ADD"), 4); 
-	static constexpr eosio::symbol ATD_SYMBOL = symbol(symbol_code("ATD"), 4); 
-	static constexpr eosio::symbol DAC_SYMBOL = symbol(symbol_code("ACTDAC"), 4); 
-	static constexpr eosio::symbol HORUS_SYMBOL = symbol(symbol_code("HORUS"), 4); 
-	static constexpr eosio::symbol IQ_SYMBOL = symbol(symbol_code("IQ"), 4); 
-	static constexpr eosio::symbol KARMA_SYMBOL = symbol(symbol_code("KARMA"), 4); 
-	static constexpr eosio::symbol TP_SYMBOL = symbol(symbol_code("TPT"), 4); 
-	static constexpr eosio::symbol MEET_SYMBOL = symbol(symbol_code("MEETONE"), 4); 
-	static constexpr eosio::symbol BLACK_SYMBOL = symbol(symbol_code("BLACK"), 4); 
-	
-	eosio::name         _code;
-	eoswin::random      _random;
-	checksum256    _seed;
-	
+    static constexpr eosio::name   TOKEN_CONTRACT{"act.token"_n};
+    static constexpr eosio::name   stake_account{"act.stake"_n};    
+    static constexpr eosio::name   GAME_TOKEN_CONTRACT{"actlucktoken"_n};
+    static constexpr eosio::name   _game_token{"actlucktoken"_n};
+    static constexpr eosio::name   TEAM_ACCOUNT {"luckyaddress"_n};
+    static constexpr eosio::name   DIVI_ACCOUNT {"actwinbonus1"_n};
+    static constexpr eosio::name   JACKPOT_ACCOUNT {"winjackpot11"_n};
+    static constexpr eosio::name   transfer_action{"transfer"_n};
+    
+    static constexpr eosio::symbol ACT_SYMBOL = symbol(symbol_code("ACT"), 4);
+    static constexpr eosio::symbol GAME_SYMBOL = symbol(symbol_code("LUCKY"), 4); 
+    
+    eosio::name         _code;
+    eoswin::random      _random;
+    checksum256    _seed;
+    
     void setCode(eosio::name code);
 
     //@abi table activebets
@@ -225,7 +206,7 @@ CONTRACT dice : public eosio::contract {
     high_odds_index _high_odds_bets;
 
     typedef eosio::multi_index<"largebets"_n, bet> large_eos_index;
-    large_eos_index _large_eos_bets;
+    large_eos_index _large_act_bets;
     
     //@abi table globalvars
     TABLE globalvar
@@ -254,16 +235,6 @@ CONTRACT dice : public eosio::contract {
     };
     typedef eosio::multi_index<"tradetokens"_n, tradetoken> _tradetoken_index;
     _tradetoken_index _trades;
-
-    //@abi table notices
-    TABLE notice
-    {
-      uint64_t id;
-      string   val;
-      uint64_t primary_key() const { return id; };
-    };
-    typedef eosio::multi_index<"notices"_n, notice> _notice_index;
-    _notice_index _notices;
 
     TABLE assetitem
     {
@@ -326,8 +297,8 @@ CONTRACT dice : public eosio::contract {
     _luckyreward_index _luckyrewards;
 
 
-	dice( eosio::name s, eosio::name code, datastream<const char*> ds );
-	~dice() {}
+    dice( eosio::name s, eosio::name code, datastream<const char*> ds );
+    ~dice() {}
 
     /// @abi action
     ACTION setactive(bool active);
@@ -338,9 +309,6 @@ CONTRACT dice : public eosio::contract {
     void init_all_trade();
 
     void init_trade_token(eosio::symbol sym, eosio::name contract);
-
-    /// @abi action
-    ACTION setnotice(string notice);
 
     /// @abi action
     ACTION setluckrwd(uint64_t id, uint64_t number, eosio::asset reward);
@@ -395,17 +363,17 @@ CONTRACT dice : public eosio::contract {
 
     void save_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list,
-				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
+                  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
                   checksum256 seed, eosio::time_point_sec time);
 
     void save_highodds_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list, 
-				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, 
+                  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value, 
                   checksum256 seed, eosio::time_point_sec time);
 
     void save_large_bet(uint64_t bet_id, eosio::name bettor, eosio::name inviter, 
                   eosio::asset bet_quantity, vector<eosio::asset> payout_list, 
-				  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
+                  uint8_t roll_type, uint64_t roll_border, uint64_t roll_value,
                   checksum256 seed, eosio::time_point_sec time);
 
     /// @abi action
