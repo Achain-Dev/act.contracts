@@ -305,6 +305,7 @@ CONTRACT dice : public eosio::contract {
     ACTION init();
 
     void init_all_trade();
+    vector<string> split(const string& str, const string& delim);
 
     void init_trade_token(eosio::symbol sym, eosio::name contract);
 

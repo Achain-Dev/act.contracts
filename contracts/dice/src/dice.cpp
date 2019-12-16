@@ -226,6 +226,23 @@ void dice::rewardlucky(name bettor, eosio::name inviter, eosio::asset bet_asset)
   }
 }
 
+
+vector<string> dice::split(const string& str, const string& delim) {
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
 void dice::transfer(eosio::name from, eosio::name to, eosio::asset quantity, string memo) {
   if (from == get_self() || to != get_self()) { return;  }
 
@@ -248,7 +265,7 @@ void dice::transfer(eosio::name from, eosio::name to, eosio::asset quantity, str
   eosio::symbol sym_name = quantity.symbol;
   auto trade_iter = _trades.find(sym_name.raw());
   eosio::name bet_token(trade_iter->contract);
-  eosio::asset balance = eosio::token::get_balance(bet_token,get_self(), sym_name.code());
+  eosio::asset balance = eosio::token::get_balance(bet_token, get_self(), sym_name.code());
 
   if (memo == "deposit") {
     if (trade_iter != _trades.end()) {
@@ -268,9 +285,7 @@ void dice::transfer(eosio::name from, eosio::name to, eosio::asset quantity, str
     
     check(memo.empty() == false, "Memo is for dice info, cannot be empty.");
 
-    vector<string> pieces;
-    //todo
-    //boost::split(pieces, t.memo, boost::is_any_of(","));
+    auto pieces = split(memo, ",");
 
     check(pieces[0].empty() == false, "Roll type cannot be empty!");
     check(pieces[1].empty() == false, "Roll prediction cannot be empty!");
