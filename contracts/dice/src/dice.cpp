@@ -5,10 +5,9 @@
 using namespace eosio;
 using namespace std;
 /********************************* bet *********************************/
-void dice::setCode(eosio::name code) { _code = code; }
-
 dice::dice(eosio::name self, eosio::name code, datastream<const char*> ds )
                     : eosio::contract(self, code, ds),
+                     _code(code),
                      _bets(self, self.value),
                      _globals(self, self.value),
                      _high_odds_bets(self, self.value),
@@ -1015,3 +1014,21 @@ ACTION dice::luckverify(checksum256 seed) {
   string str = string("Random value ") + to_string(r);
   check(false, str.c_str());
 }
+
+extern "C" {
+   void apply(uint64_t receiver, uint64_t code, uint64_t action) {
+    if (code == "act"_n.value && action == "onerror"_n.value) {
+        check(code == "act"_n.value, "onerror action's are only valid from the ACT system account");
+    }
+    if (( code == "act.token"_n.value || code == "actlucktoken"_n.value ) && (action == "transfer"_n.value)) { 
+        execute_action(name(receiver),name(code), &dice::transfer);
+        return;
+    }
+    if (code != receiver) return; 
+    switch (action) { 
+        EOSIO_DISPATCH_HELPER(dice, (init)(setactive)(setglobal)(setluckrwd)(setriskline)(setdivi)(setminbet)(receipt)(rewardlucky)(verify)(start)(resolved)(luck)(lucking)(lucked)(luckreceipt)(luckverify)) 
+    }; 
+  } 
+}
+
+

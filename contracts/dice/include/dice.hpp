@@ -176,9 +176,7 @@ CONTRACT dice : public eosio::contract {
     
     eosio::name         _code;
     eoswin::random      _random;
-    checksum256    _seed;
-    
-    void setCode(eosio::name code);
+    checksum256         _seed;
 
     //@abi table activebets
     //@abi table highbets
