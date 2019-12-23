@@ -53,7 +53,7 @@
 using namespace eosio;
 using namespace std;
 /********* random ***********/
-namespace eoswin {  
+namespace actdice {  
     class random {
     public:
       template<class T>
@@ -163,19 +163,18 @@ CONTRACT dice : public eosio::contract {
 
     static constexpr eosio::name   active_permission{"active"_n};
     static constexpr eosio::name   TOKEN_CONTRACT{"act.token"_n};
-    static constexpr eosio::name   stake_account{"act.stake"_n};    
+    static constexpr eosio::name   stake_account{"act.stake"_n};
     static constexpr eosio::name   GAME_TOKEN_CONTRACT{"actlucktoken"_n};
-    static constexpr eosio::name   _game_token{"actlucktoken"_n};
+	static constexpr eosio::name   _game_token{"actlucktoken"_n};
     static constexpr eosio::name   TEAM_ACCOUNT {"luckyaddress"_n};
     static constexpr eosio::name   DIVI_ACCOUNT {"actwinbonus1"_n};
     static constexpr eosio::name   JACKPOT_ACCOUNT {"winjackpot11"_n};
     static constexpr eosio::name   transfer_action{"transfer"_n};
     
     static constexpr eosio::symbol ACT_SYMBOL = symbol(symbol_code("ACT"), 4);
-    static constexpr eosio::symbol GAME_SYMBOL = symbol(symbol_code("LUCKY"), 4); 
-    
+    static constexpr eosio::symbol GAME_SYMBOL = symbol(symbol_code("ACT"), 4);
     eosio::name         _code;
-    eoswin::random      _random;
+    actdice::random      _random;
     checksum256         _seed;
 
     //@abi table activebets
@@ -303,8 +302,7 @@ CONTRACT dice : public eosio::contract {
 
     /// @abi action
     ACTION init();
-
-    void init_all_trade();
+    
     vector<string> split(const string& str, const string& delim);
 
     void init_trade_token(eosio::symbol sym, eosio::name contract);

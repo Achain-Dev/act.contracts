@@ -91,13 +91,9 @@ ACTION dice::init(){
     a.val = 100;
   });
 
-  init_all_trade();
+  init_trade_token(ACT_SYMBOL, TOKEN_CONTRACT);
 }
 
-void dice::init_all_trade() {
-  init_trade_token(ACT_SYMBOL, TOKEN_CONTRACT);
-  init_trade_token(GAME_SYMBOL, GAME_TOKEN_CONTRACT);
-}
 
 void dice::init_trade_token(eosio::symbol sym, eosio::name contract)
 {
@@ -184,6 +180,8 @@ void dice::to_bonus_bucket(eosio::symbol sym_name) {
   });
   //todo
   //INLINE_ACTION_SENDER(eosio::token, transfer)(trade_iter->contract, {get_self(),active_permission}, {get_self(), DIVI_ACCOUNT, eosio::asset(dividends, sym_name), "To ACT.Win Bonus Pool [https://act.win/dice]"} );
+  token::transfer_action trans{ TOKEN_CONTRACT, {get_self(), active_permission} };
+  trans.send(get_self(), DIVI_ACCOUNT, eosio::asset(dividends, sym_name), "To ACT.Win Bonus Pool [https://act.win/dice]");
 }
 
 void dice::rewardlucky(name bettor, eosio::name inviter, eosio::asset bet_asset) {
@@ -280,7 +278,7 @@ void dice::transfer(eosio::name from, eosio::name to, eosio::asset quantity, str
     int64_t max = (balance.amount * SINGLE_BET_MAX_PERCENT / 100);
     check(amt <= max, "Bet amount exceeds max amount.");
 
-    auto trade_iter = _trades.find(sym_name.raw());
+    //todo auto trade_iter = _trades.find(sym_name.raw());
     check(balance.amount >= trade_iter->protect, "Game under maintain, stay tuned.");
     
     check(memo.empty() == false, "Memo is for dice info, cannot be empty.");
@@ -464,11 +462,12 @@ ACTION dice::resolved(eosio::name bettor, eosio::asset bet_asset,
         auto lucky_trade_iter = _trades.find(lucky_sym_name.raw());
         
         char str[128];
-        sprintf(str, "Hit magic number! You got extra bonus! https://eos.win");
+        sprintf(str, "Hit magic number! You got extra bonus! https://act.win");
         eosio::print(string(str).c_str());
         //todo
-        //INLINE_ACTION_SENDER(eosio::token, transfer)(lucky_trade_iter->contract, {get_self(), active_permission}, {get_self(), bettor, lucky_iter->reward, string(str)} );
-        
+        //INLINE_ACTION_SENDER(eosio::token, transfer)(lucky_trade_iter->contract, { get_self(), active_permission}, { get_self(), bettor, lucky_iter->reward, "Hit magic number! You got extra bonus! https://act.win"} );
+        token::transfer_action trans{ TOKEN_CONTRACT, { {get_self(), active_permission} } };
+        trans.send(get_self(), bettor, lucky_iter->reward, string(str));
         payout_list.push_back(lucky_iter->reward);
       }
       lucky_iter++;
@@ -527,17 +526,17 @@ ACTION dice::resolved(eosio::name bettor, eosio::asset bet_asset,
   if ( is_win )
   {
     char str[128];
-    sprintf(str, "Bet id: %lld. You win! Remember to claim your dividens with your LUCKY token! https://eos.win", cur_bet_id);
-    // INLINE_ACTION_SENDER(eosio::token, transfer)(trade_iter->contract, {get_self(), active_permission}, {get_self(), bettor, payout, string(str)} );
-  
+    sprintf(str, "Bet id: %lld. You win! Remember to claim your dividens with your LUCKY token! https://act.win", cur_bet_id);
+    //token::transfer_action trans{ TOKEN_CONTRACT, {get_self(), active_permission} };
+    //trans.send(get_self(), bettor, payout, string(str));
+
     r_out.actions.emplace_back(eosio::permission_level{get_self(), active_permission}, 
                             trade_iter->contract, 
                             transfer_action, 
                             make_tuple(get_self(), bettor, payout, string(str)));
   }
 
-  // INLINE_ACTION_SENDER(dice, receipt)(get_self(), {get_self(), active_permission}, {cur_bet_id, bettor, bet_asset, payout_list, _seed, roll_type, roll_border, roll_value});
-  //todo
+   //todo
   //r_out.actions.emplace_back(eosio::permission_level{get_self(), active_permission}, get_self(), "receipt"_n, make_tuple(cur_bet_id, bettor, bet_asset, payout_list, _seed, roll_type, roll_border, roll_value));
   r_out.delay_sec = 0;
   r_out.send(bettor.value, get_self());
@@ -974,7 +973,7 @@ ACTION dice::lucked(eosio::name actor) {
                     make_tuple(get_self(), actor, reward, "ACT.Win lucky draw rewards!"));
 
   if (roll_value == 10000) {
-    auto lucky_reward = eosio::asset(6660000, GAME_SYMBOL);
+    auto lucky_reward = eosio::asset(6660000, ACT_SYMBOL);
     rewards.push_back(lucky_reward);
     r_out.actions.emplace_back(eosio::permission_level{get_self(), active_permission}, 
             GAME_TOKEN_CONTRACT, 
