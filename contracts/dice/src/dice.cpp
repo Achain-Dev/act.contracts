@@ -537,7 +537,7 @@ ACTION dice::resolved(eosio::name bettor, eosio::asset bet_asset,
   }
 
    //todo
-  //r_out.actions.emplace_back(eosio::permission_level{get_self(), active_permission}, get_self(), "receipt"_n, make_tuple(cur_bet_id, bettor, bet_asset, payout_list, _seed, roll_type, roll_border, roll_value));
+  r_out.actions.emplace_back(eosio::permission_level{get_self(), active_permission}, get_self(), "receipt"_n, make_tuple(cur_bet_id, bettor, bet_asset, payout_list, _seed, roll_type, roll_border, roll_value));
   r_out.delay_sec = 0;
   r_out.send(bettor.value, get_self());
 }
